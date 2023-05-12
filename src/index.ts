@@ -12,62 +12,78 @@ const ServiceYearConst = {
     2022: 2022,
 }
 
-const PhotographyPrices: number[] = []
-PhotographyPrices[ServiceYearConst[2020]] = 1700
-PhotographyPrices[ServiceYearConst[2021]] = 1800
-PhotographyPrices[ServiceYearConst[2022]] = 1900
+const PricesConst = {
+    BothServicesDiscount: "BothServicesDiscount",
+    WeddingSessionDiscount: "WeddingSessionDiscount"
+}
 
-const VideoRecordingPrices: number[] = []
-VideoRecordingPrices[ServiceYearConst[2020]] = 1700
-VideoRecordingPrices[ServiceYearConst[2021]] = 1800
-VideoRecordingPrices[ServiceYearConst[2022]] = 1900
+const Prices: number[][] = []
 
-const BothServicesDiscount: number[] = []
-BothServicesDiscount[ServiceYearConst[2020]] = 1200
-BothServicesDiscount[ServiceYearConst[2021]] = 1300
-BothServicesDiscount[ServiceYearConst[2022]] = 1300
+const PricesFrom2020: number[] = []
+Prices[ServiceYearConst[2020]] = PricesFrom2020
+PricesFrom2020[ServiceTypeConst.Photography] = 1700
+PricesFrom2020[ServiceTypeConst.VideoRecording] = 1700
+PricesFrom2020[PricesConst.BothServicesDiscount] = 1200
 
-export type ServiceYear = 2020 | 2021 | 2022;
-export type ServiceType = "Photography" | "VideoRecording" | "BlurayPackage" | "TwoDayEvent" | "WeddingSession";
+const PricesFrom2021: number[] = []
+Prices[ServiceYearConst[2021]] = PricesFrom2021
+PricesFrom2021[ServiceTypeConst.Photography] = 1800
+PricesFrom2021[ServiceTypeConst.VideoRecording] = 1800
+PricesFrom2021[PricesConst.BothServicesDiscount] = 1300
+
+const PricesFrom2022: number[] = []
+Prices[ServiceYearConst[2022]] = PricesFrom2022
+PricesFrom2022[ServiceTypeConst.Photography] = 1900
+PricesFrom2022[ServiceTypeConst.VideoRecording] = 1900
+PricesFrom2022[PricesConst.BothServicesDiscount] = 1300
+
+const CommonPrices: number[] = []
+CommonPrices[ServiceTypeConst.WeddingSession] = 600
+CommonPrices[PricesConst.WeddingSessionDiscount] = 300
+CommonPrices[ServiceTypeConst.BlurayPackage] = 300
+CommonPrices[ServiceTypeConst.TwoDayEvent] = 400
+
+export type ServiceYear = 2020 | 2021 | 2022
+export type ServiceType = "Photography" | "VideoRecording" | "BlurayPackage" | "TwoDayEvent" | "WeddingSession"
 
 const updateForSelect = (
     previouslySelectedServices: ServiceType[],
     service: ServiceType
 ) => {
     if (previouslySelectedServices.find(x => x === service)) {
-        return previouslySelectedServices;
+        return previouslySelectedServices
     }
 
     if (service === ServiceTypeConst.BlurayPackage 
     && !previouslySelectedServices.find(x => x === ServiceTypeConst.VideoRecording)) {
-        return previouslySelectedServices;
+        return previouslySelectedServices
     }
 
     if (service === ServiceTypeConst.TwoDayEvent
     && !previouslySelectedServices.find(x => x === ServiceTypeConst.VideoRecording || x === ServiceTypeConst.Photography)) {
-        return previouslySelectedServices;
+        return previouslySelectedServices
     }
 
-    return [...previouslySelectedServices, service];
+    return [...previouslySelectedServices, service]
 }
 
 const updateForDeselect = (
     previouslySelectedServices: ServiceType[],
     service: ServiceType
 ) => {
-    let filteredServices = previouslySelectedServices.filter(x => x !== service);
+    let filteredServices = previouslySelectedServices.filter(x => x !== service)
     
     if (service === ServiceTypeConst.VideoRecording
     && filteredServices.find(x => x === ServiceTypeConst.BlurayPackage)) {
-        filteredServices = filteredServices.filter(x => x !== ServiceTypeConst.BlurayPackage);
+        filteredServices = filteredServices.filter(x => x !== ServiceTypeConst.BlurayPackage)
     }
 
     if (!filteredServices.find(x => x === ServiceTypeConst.VideoRecording || x === ServiceTypeConst.Photography)
     && filteredServices.find(x => x === ServiceTypeConst.TwoDayEvent)) {
-        filteredServices = filteredServices.filter(x => x !== ServiceTypeConst.TwoDayEvent);
+        filteredServices = filteredServices.filter(x => x !== ServiceTypeConst.TwoDayEvent)
     }
 
-    return filteredServices;
+    return filteredServices
 }
 
 export const updateSelectedServices = (
@@ -82,49 +98,51 @@ export const updateSelectedServices = (
         return updateForDeselect(previouslySelectedServices, action.service)
     }
     
-    return previouslySelectedServices;
-};
+    return previouslySelectedServices
+}
 
 export const calculatePrice = (selectedServices: ServiceType[], selectedYear: ServiceYear) => {
-    let basePrice = 0;
-    let finalPrice = 0;
+    let basePrice = 0
+    let finalPrice = 0
 
-    const containsPhotography = selectedServices.find(x => x === ServiceTypeConst.Photography);
-    const containsVideoRecording = selectedServices.find(x => x === ServiceTypeConst.VideoRecording);
-    const containsBlurayPackage = selectedServices.find(x => x === ServiceTypeConst.BlurayPackage);
-    const containsTwoDayEvent = selectedServices.find(x => x === ServiceTypeConst.TwoDayEvent);
-    const containsWeddingSession = selectedServices.find(x => x === ServiceTypeConst.WeddingSession);
+    const pricesForSelectedYear = Prices[selectedYear]
+
+    const containsPhotography = selectedServices.find(x => x === ServiceTypeConst.Photography)
+    const containsVideoRecording = selectedServices.find(x => x === ServiceTypeConst.VideoRecording)
+    const containsBlurayPackage = selectedServices.find(x => x === ServiceTypeConst.BlurayPackage)
+    const containsTwoDayEvent = selectedServices.find(x => x === ServiceTypeConst.TwoDayEvent)
+    const containsWeddingSession = selectedServices.find(x => x === ServiceTypeConst.WeddingSession)
 
     if (containsPhotography) {
-        basePrice += PhotographyPrices[selectedYear]
+        basePrice += pricesForSelectedYear[ServiceTypeConst.Photography]
     }
     if (containsVideoRecording) {
-        basePrice += VideoRecordingPrices[selectedYear]
+        basePrice += pricesForSelectedYear[ServiceTypeConst.VideoRecording]
         if (containsBlurayPackage) {
-            basePrice += 300
+            basePrice += CommonPrices[ServiceTypeConst.BlurayPackage]
         }
     }
     if (containsPhotography && containsVideoRecording) {
-        finalPrice -= BothServicesDiscount[selectedYear]
+        finalPrice -= pricesForSelectedYear[PricesConst.BothServicesDiscount]
     }
     if (containsWeddingSession)
     {
-        basePrice += 600;
+        basePrice += CommonPrices[ServiceTypeConst.WeddingSession]
         if (containsPhotography && selectedYear === ServiceYearConst[2022]) {
-            finalPrice -= 600;
+            basePrice -= CommonPrices[ServiceTypeConst.WeddingSession]
             if (containsTwoDayEvent) {
-                basePrice += 400
+                basePrice += CommonPrices[ServiceTypeConst.TwoDayEvent]
             }
         }
         else if (containsPhotography || containsVideoRecording) {
-            finalPrice -= 300;
+            finalPrice -= CommonPrices[PricesConst.WeddingSessionDiscount]
             if (containsTwoDayEvent) {
-                basePrice += 400
+                basePrice += CommonPrices[ServiceTypeConst.TwoDayEvent]
             }
         }
     }    
 
     finalPrice += basePrice
 
-    return { basePrice, finalPrice };
-};
+    return { basePrice, finalPrice }
+}
